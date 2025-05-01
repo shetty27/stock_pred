@@ -6,7 +6,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore, db
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from urllib.parse import quote  # ✅ added for encoding
+from urllib.parse import quote
 
 app = FastAPI()
 
@@ -58,7 +58,6 @@ async def fetch_all_prices(session, instrument_keys, access_token):
 
     try:
         async with session.get(url, headers=headers, timeout=10) as resp:
-
             if resp.status == 200:
                 data = await resp.json()
                 return data.get("data", {})
@@ -72,7 +71,10 @@ async def fetch_all_prices(session, instrument_keys, access_token):
 # Broadcast to all clients
 async def broadcast_data(data):
     if clients:
-        await asyncio.wait([client.send_text(json.dumps(data)) for client in clients])
+        await asyncio.wait([
+            asyncio.create_task(client.send_text(json.dumps(data)))
+            for client in clients
+        ])
 
 # Price update loop
 async def price_updater():
@@ -91,7 +93,7 @@ async def price_updater():
             }
 
             all_instrument_keys = []
-            symbol_index_map = {}  # e.g. {"RELIANCE": ("NSE_EQ|xxx", "NIFTY50")}
+            symbol_index_map = {}
 
             for index_name, path in index_refs.items():
                 ref = db.reference(path)
@@ -111,9 +113,9 @@ async def price_updater():
 
                     if ltp is not None:
                         live_data.append({
-                        "name": symbol,
-                        "ltp": ltp,
-                        "group": index_name.lower()  # e.g., "nifty50", "midcap", "smallcap"
+                            "name": symbol,
+                            "ltp": ltp,
+                            "group": index_name.lower()
                         })
 
                 await broadcast_data(live_data)

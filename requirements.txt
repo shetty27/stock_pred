@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+firebase-admin
+feedparser
+requests
+pandas
+pandas_ta
+numpy
+scikit-learn
+tensorflow
+vaderSentiment
+python-multipart

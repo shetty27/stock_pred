@@ -69,12 +69,12 @@ async def fetch_all_prices(session, instrument_keys, access_token):
         return {}
 
 # Broadcast to all clients
+# ✅ Fix this function
 async def broadcast_data(data):
     if clients:
-        await asyncio.wait([
-            asyncio.create_task(client.send_text(json.dumps(data)))
-            for client in clients
-        ])
+        tasks = [asyncio.create_task(client.send_text(json.dumps(data))) for client in clients]
+        await asyncio.wait(tasks)
+
 
 # Price update loop
 async def price_updater():
